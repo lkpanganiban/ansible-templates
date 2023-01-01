@@ -1,0 +1,15 @@
+---
+apps_directory: "/home/user/apps"
+debug: 0
+django_runner_replica: 1
+django_redis_cache: "django_redis_cache"
+django_redis_queue: "django_redis_queue"
+django_log_location: "/var/log/django/django.log"
+django_requests_log_location: "/var/log/django/djangorequestlogs.log"
+django_domain_name: "django-web"
+is_ssl: false
+postgres:
+  username: djangopostgresuser
+  password: djangopostgrespassword
+  host: django_db
+  dbname: djangodb

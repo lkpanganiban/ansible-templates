@@ -1,0 +1,86 @@
+- name: Create blob directory
+  file:
+    path: /datadrive/blob_data
+    state: directory
+
+- name: Creates log directory
+  file:
+    path: /datadrive/log
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: Creates postgres directory
+  file:
+    path: /datadrive/postgres_data
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: Creates redis data directory
+  file:
+    path: /datadrive/redis_data
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: Creates src directory
+  file:
+    path: '{{apps_directory}}/src'
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: ensure nginx is at the latest version
+  apt: name=nginx state=latest
+
+- name: start nginx
+  service:
+      name: nginx
+      state: started
+
+- name: Make sure psycopg2 is installed
+  pip:
+    name: psycopg2-binary
+    state: present
+
+- name: configure docker environment
+  become: yes
+  template:
+    src: roles/django-deployments/templates/docker.env.j2
+    dest: '{{ apps_directory }}/.env.django'
+
+- name: configure postgresql environment
+  become: yes
+  template:
+    src: roles/django-deployments/templates/docker.env-db.j2
+    dest: '{{ apps_directory }}/.env-db.django'
+
+- name: Creates django nginx directory
+  file:
+    path: '{{ apps_directory }}/docker_nginx_conf'
+    state: directory
+
+- name: configure docker-nginx environment
+  become: yes
+  template:
+    src: roles/django-deployments/templates/docker_nginx.j2
+    dest: '{{apps_directory}}/docker_nginx_conf/nginx.conf'
+
+- name: configure nginx Dockerfile
+  become: yes
+  template:
+    src: roles/django-deployments/templates/nginx_Dockerfile
+    dest: '{{apps_directory}}/docker_nginx_conf/Dockerfile'
+
+- name: configure django docker compose file
+  become: yes
+  template:
+    src: roles/django-deployments/templates/docker-compose.django.prod.yml.j2
+    dest: '{{apps_directory}}/docker-compose.django.yml'
+
+- name: download the app image
+  become: yes
+  shell: |
+    docker login -u "{{ docker_hub.user }}" -p "{{ docker_hub.password }}" docker.io
+    docker pull lkpanganiban/django-app-template:{{app_version}}

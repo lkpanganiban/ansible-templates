@@ -1,0 +1,14 @@
+- name: stopping django-web
+  become: yes
+  docker_compose:
+    project_src: '{{apps_directory}}'
+    files: 'docker-compose.django.yml'
+    state: present
+    stopped: yes
+  
+- name: running django-web
+  become: yes
+  docker_compose:
+    project_src: '{{apps_directory}}'
+    files: 'docker-compose.django.yml'
+    state: present

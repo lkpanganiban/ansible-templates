@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+  django_app:
+    image: docker.io/lkpanganiban/django-app-template:0.1.0
+    # command: gunicorn django_app.wsgi:application --limit-request-line 8190  --workers 8 --bind 0.0.0.0:8000 --timeout 330
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    volumes:
+      - log_volume:/var/log/django-app
+    env_file:
+      - ./.env.django
+    depends_on:
+      - django_redis_cache
+      - django_db
+  django_redis_cache:
+    image: "redis:alpine3.17"
+    container_name: django_redis_cache
+    ports:
+        - "11211:11211"
+  django_db:
+    image: postgres:15.1-alpine3.17
+    container_name: django_db
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data/
+    env_file:
+    - ./.env-db.api
+  django_long_task_worker:
+    image: docker.io/lkpanganiban/django-app-template:0.1.0
+    container_name: django_long_task_worker
+    command: celery -A django_app worker -Q long_queue --loglevel=INFO
+    env_file:
+      - ./.env.django
+    depends_on:
+      - django_app
+    deploy:
+      replicas: {{ django_runner_replica }}
+  django_shared_task_worker:
+    image: docker.io/lkpanganiban/django-app-template:0.1.0
+    container_name: django_shared_task_worker
+    command: celery -A django_app worker --loglevel=INFO
+    env_file:
+      - ./.env.django
+    depends_on:
+      - django_app
+    deploy:
+      replicas: {{ django_runner_replica }}
+  django_scheduled_task_worker:
+    image: docker.io/lkpanganiban/django-app-template:0.1.0
+    container_name: django_scheduled_task_worker
+    command: celery -A django_app beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+    env_file:
+      - ./.env.django
+    depends_on:
+      - django_app
+  django_redis_queue:
+    image: "redis:alpine3.17"
+    container_name: django_redis_queue
+    volumes:
+      - redis_volume:/data
+  django_flower:
+    container_name: django_task_monitor
+    image: mher/flower:1.2.0
+    environment:
+      - CELERY_BROKER_URL=redis://django_prod_redis:6379/0
+      - FLOWER_PORT=8888
+    ports:
+      - 8888:8888
+    depends_on:
+      - django_prod_celery
+      - django_prod_celery_scheduler
+
+volumes:
+  static_volume:
+  redis_volume:
+  postgres_volume:
+  log_volume:
