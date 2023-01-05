@@ -38,12 +38,12 @@
       name: docker-compose
       state: present  
 
-- name: Create docker-compose Airflow
+- name: Create docker-compose of Airflow
   template:
     src: templates/docker-compose.airflow.yml.j2
     dest: '{{apps_directory}}/docker-compose.airflow.yml'
   
-- name: running airflow
+- name: Running Airflow
   become: yes
   docker_compose:
     project_src: '{{apps_directory}}'
