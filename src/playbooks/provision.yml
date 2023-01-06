@@ -21,3 +21,9 @@
     - role: django-deployment
       become: true
       when: deploy_django_app
+    - role: elasticsearch
+      become: true
+      when: deploy_elasticsearch
+    - role: airflow-deployment
+      become: true
+      when: deploy_airflow

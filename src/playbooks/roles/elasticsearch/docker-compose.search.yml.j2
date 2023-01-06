@@ -5,7 +5,7 @@ services:
     container_name: search
     restart: always
     environment:
-      - ELASTIC_USERNAME=elasitc
+      - ELASTIC_USERNAME=elastic
       - ELASTIC_PASSWORD=search_password
       - node.name=search
       - discovery.type=single-node
