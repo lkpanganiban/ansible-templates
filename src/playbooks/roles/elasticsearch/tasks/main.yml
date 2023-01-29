@@ -1,0 +1,24 @@
+- name: Update repositories cache
+  apt:
+    update_cache: yes
+  ignore_errors: yes
+- name: ensure apps directory is owned by app user
+  become: yes
+  file:
+    path: "{{apps_directory}}"
+    owner: "{{ app_user.username }}"
+    group: "{{ app_user.username }}"
+    state: directory
+    recurse: yes
+
+- name: Create docker-compose Elasticsearch
+  template:
+    src: templates/docker-compose.sesarch.yml.j2
+    dest: '{{apps_directory}}/docker-compose.search.yml'
+  
+- name: Running Elasticsearch
+  become: yes
+  docker_compose:
+    project_src: '{{apps_directory}}'
+    files: 'docker-compose.search.yml'
+    state: present

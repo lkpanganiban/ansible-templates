@@ -1,0 +1,51 @@
+- name: ensure dags folder exists
+  file:
+    path: '{{apps_directory}}/dags'
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: ensure plugins folder exists
+  file:
+    path: '{{apps_directory}}/plugins'
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: ensure logs folder exists
+  file:
+    path: '{{apps_directory}}/logs'
+    state: directory
+    mode: 0777
+    recurse: yes
+
+- name: upload dags folder
+  become: yes
+  copy:
+    src: templates/dags.zip
+    dest: '{{apps_directory}}/dags.zip'
+    owner: iraya
+    group: iraya
+
+- name: Unarchive dags that is already on the remote machine
+  ansible.builtin.unarchive:
+    src: '{{apps_directory}}/dags.zip'
+    dest: '{{apps_directory}}/'
+    remote_src: True
+
+- name: Make sure docker-compose is installed
+  pip:
+      name: docker-compose
+      state: present  
+
+- name: Create docker-compose of Airflow
+  template:
+    src: templates/docker-compose.airflow.yml.j2
+    dest: '{{apps_directory}}/docker-compose.airflow.yml'
+  
+- name: Running Airflow
+  become: yes
+  docker_compose:
+    project_src: '{{apps_directory}}'
+    files: 'docker-compose.airflow.yml'
+    state: present
