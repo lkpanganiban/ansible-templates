@@ -71,9 +71,21 @@ services:
     depends_on:
       - django_prod_celery
       - django_prod_celery_scheduler
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_volume:/data
+    env_file:
+      - ./.env.dev
+    command: server --console-address ":9001" /data
+
 
 volumes:
   static_volume:
   redis_volume:
   postgres_volume:
   log_volume:
+  minio_volume:
