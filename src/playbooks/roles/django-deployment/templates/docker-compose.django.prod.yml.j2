@@ -79,7 +79,7 @@ services:
     volumes:
       - minio_volume:/data
     env_file:
-      - ./.env.dev
+      - ./.env.minio
     command: server --console-address ":9001" /data
 
 
