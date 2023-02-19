@@ -3,8 +3,7 @@ version: '3.7'
 services:
   django_app:
     image: docker.io/lkpanganiban/django-app-template:0.1.0
-    # command: gunicorn django_app.wsgi:application --limit-request-line 8190  --workers 8 --bind 0.0.0.0:8000 --timeout 330
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn django_app.wsgi:application --limit-request-line 8190  --workers 8 --bind 0.0.0.0:8000 --timeout 330
     ports:
       - 8000:8000
     volumes:
